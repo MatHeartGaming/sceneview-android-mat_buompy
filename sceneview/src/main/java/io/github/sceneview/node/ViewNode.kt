@@ -106,8 +106,8 @@ open class ViewNode : Node {
         super.onFrame(frameTime)
     }
 
-    open fun onViewLoaded(renderableInstance: RenderableInstance, view: View) {
-        onViewLoaded?.invoke(renderableInstance, view)
+    open fun onViewLoaded(renderableInstance: RenderableInstance, view: ViewRenderable) {
+        onViewLoaded?.invoke(renderableInstance, view.view)
     }
 
     override fun onAttachedToScene(sceneView: SceneView) {
@@ -161,9 +161,9 @@ open class ViewNode : Node {
                     val renderable = ViewRenderable.builder()
                         .setView(context, layoutResId)
                         .await(lifecycle)
-                    val view = renderable.view
+                    val view = renderable
                     val instance = setRenderable(renderable)
-                    onLoaded?.invoke(instance!!, view)
+                    onLoaded?.invoke(instance!!, view.view)
                     onViewLoaded(instance!!, view)
                 } catch (error: java.lang.Exception) {
                     onError?.invoke(error)

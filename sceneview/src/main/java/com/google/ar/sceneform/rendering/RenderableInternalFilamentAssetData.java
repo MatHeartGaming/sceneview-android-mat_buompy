@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.google.android.filament.IndexBuffer;
 import com.google.android.filament.VertexBuffer;
+import com.google.android.filament.gltfio.ResourceLoader;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.RenderableInternalData.MeshData;
 
@@ -22,7 +23,8 @@ import java.util.function.Function;
 @SuppressWarnings("AndroidJdkLibsChecker")
 public class RenderableInternalFilamentAssetData implements IRenderableInternalData {
 
-  Context context;
+    public ResourceLoader resourceLoader;
+    Context context;
   Buffer gltfByteBuffer;
   boolean isGltfBinary;
   @Nullable Function<String, Uri> urlResolver;

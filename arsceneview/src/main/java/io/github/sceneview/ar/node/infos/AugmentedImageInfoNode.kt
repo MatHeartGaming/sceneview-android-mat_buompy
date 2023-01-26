@@ -1,7 +1,6 @@
 package io.github.sceneview.ar.node.infos
 
 import android.content.Context
-import android.view.View
 import androidx.lifecycle.Lifecycle
 import com.google.ar.sceneform.rendering.RenderableInstance
 import com.google.ar.sceneform.rendering.ViewRenderable
@@ -21,7 +20,7 @@ open class AugmentedImageInfoNode(context: Context, lifecycle: Lifecycle) :
         }
     }
 
-    override fun onViewLoaded(renderableInstance: RenderableInstance, view: View) {
+    override fun onViewLoaded(renderableInstance: RenderableInstance, view: ViewRenderable) {
         super.onViewLoaded(renderableInstance, view)
 
         renderableInstance.apply {

@@ -6,6 +6,7 @@ import com.google.ar.sceneform.utilities.AndroidPreconditions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -71,12 +72,12 @@ public class PlaneFactory {
 
         RenderableDefinition renderableDefinition = RenderableDefinition.builder()
                 .setVertices(vertices)
-                .setSubmeshes(Arrays.asList(submesh))
+                .setSubmeshes(Collections.singletonList(submesh))
                 .build(lifecycle);
 
         CompletableFuture<ModelRenderable> future = ModelRenderable.builder()
                 .setSource(renderableDefinition)
-                .build(lifecycle);
+                .build();
 
         @Nullable ModelRenderable result;
         try {

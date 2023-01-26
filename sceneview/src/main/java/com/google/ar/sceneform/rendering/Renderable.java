@@ -28,46 +28,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import io.github.sceneview.Filament;
 import io.github.sceneview.SceneView;
 
-/*###########!!!!!!!!!!!!!!!!################
-/*###########!!!!!!!!!!!!!!!!################
-/*         PLEASE KILL ME !!!!!!
-/*###########!!!!!!!!!!!!!!!!################
-/*
-/* I had a great life and I even changed
-/* from sfb to filament but I'm too old now.
-/* Someone please move me to only Filament
-/* in order for me to start a new life.
-/*
-/* Maybe by directly adding the FilamentAsset
-/* to the ModelNode class and exclude the
-/* renderableData nightmare from my variables
-/*
-/*###########!!!!!!!!!!!!!!!!################
-/* ;-)
-/*###########!!!!!!!!!!!!!!!!################
-/*###########!!!!!!!!!!!!!!!!################
-*/
-
 /**
- * Base class for rendering in 3D space by attaching to a {@link io.github.sceneview.node.Node} with
- * {@link io.github.sceneview.node.ModelNode#setModel(Renderable)}.
+ * Base class for rendering in 3D space by attaching to a {@link com.google.ar.sceneform.Node} with
+ * {@link com.google.ar.sceneform.Node#setRenderable(Renderable)}.
  */
 @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"}) // CompletableFuture
 public abstract class Renderable {
-
-    @Nullable
-    protected Lifecycle lifecycle;
-
     // Data that can be shared between Renderables with makeCopy()
     private final IRenderableInternalData renderableData;
 
     protected boolean asyncLoadEnabled;
 
     // Data that is unique per-Renderable.
-    private final ArrayList<MaterialInstance> materialBindings = new ArrayList<>();
+    private final ArrayList<Material> materialBindings = new ArrayList<>();
     private final ArrayList<String> materialNames = new ArrayList<>();
     private int renderPriority = RENDER_PRIORITY_DEFAULT;
     private boolean isShadowCaster = true;
@@ -91,9 +66,8 @@ public abstract class Renderable {
      * @hide
      */
     @SuppressWarnings("initialization") // Suppress @UnderInitialization warning.
-    protected Renderable(Builder<? extends Renderable, ? extends Builder<?, ?>> builder) {
+    protected Renderable(Renderable.Builder<? extends Renderable, ? extends Builder<?, ?>> builder) {
         Preconditions.checkNotNull(builder, "Parameter \"builder\" was null.");
-        this.lifecycle = builder.lifecycle;
         if (builder.isFilamentAsset) {
             renderableData = new RenderableInternalFilamentAssetData();
         } else if (builder.isGltf) {
@@ -114,16 +88,14 @@ public abstract class Renderable {
             throw new AssertionError("Cannot copy uninitialized Renderable.");
         }
 
-        this.lifecycle = other.lifecycle;
-
         // Share renderableData with the original Renderable.
         renderableData = other.renderableData;
 
         // Copy materials.
         Preconditions.checkState(other.materialNames.size() == other.materialBindings.size());
         for (int i = 0; i < other.materialBindings.size(); i++) {
-            MaterialInstance otherMaterial = other.materialBindings.get(i);
-            materialBindings.add(otherMaterial.getMaterial().createInstance());
+            Material otherMaterial = other.materialBindings.get(i);
+            materialBindings.add(otherMaterial.makeCopy());
             materialNames.add(other.materialNames.get(i));
         }
 
@@ -161,14 +133,14 @@ public abstract class Renderable {
     /**
      * Returns the material bound to the first submesh.
      */
-    public MaterialInstance getMaterial() {
+    public Material getMaterial() {
         return getMaterial(0);
     }
 
     /**
      * Returns the material bound to the specified submesh.
      */
-    public MaterialInstance getMaterial(int submeshIndex) {
+    public Material getMaterial(int submeshIndex) {
         if (submeshIndex < materialBindings.size()) {
             return materialBindings.get(submeshIndex);
         }
@@ -179,14 +151,14 @@ public abstract class Renderable {
     /**
      * Sets the material bound to the first submesh.
      */
-    public void setMaterial(MaterialInstance material) {
+    public void setMaterial(Material material) {
         setMaterial(0, material);
     }
 
     /**
      * Sets the material bound to the specified submesh.
      */
-    public void setMaterial(int submeshIndex, MaterialInstance material) {
+    public void setMaterial(int submeshIndex, Material material) {
         if (submeshIndex < materialBindings.size()) {
             materialBindings.set(submeshIndex, material);
             changeId.update();
@@ -283,15 +255,19 @@ public abstract class Renderable {
      * @hide
      */
     public RenderableInstance createInstance(TransformProvider transformProvider) {
-        return new RenderableInstance(lifecycle, transformProvider, this);
+        return new RenderableInstance(getMaterial().lifecycle, transformProvider, this);
     }
 
     public void updateFromDefinition(RenderableDefinition definition) {
         Preconditions.checkState(!definition.getSubmeshes().isEmpty());
 
         changeId.update();
+        ArrayList<MaterialInstance> materialInstanceList = new ArrayList<>();
+        for(Material mInstance : materialBindings) {
+            materialInstanceList.add(mInstance.filamentMaterialInstance);
+        }
 
-        definition.applyDefinitionToData(renderableData, materialBindings, materialNames);
+        definition.applyDefinitionToData(renderableData, materialInstanceList, materialNames);
 
         collisionShape = new Box(renderableData.getSizeAabb(), renderableData.getCenterAabb());
     }
@@ -308,7 +284,7 @@ public abstract class Renderable {
         return renderableData;
     }
 
-    ArrayList<MaterialInstance> getMaterialBindings() {
+    ArrayList<Material> getMaterialBindings() {
         return materialBindings;
     }
 
@@ -322,7 +298,19 @@ public abstract class Renderable {
      * until the view has been successfully drawn to an external texture, and initializing material
      * parameters.
      */
-    public void prepareForDraw(SceneView sceneView) {
+    void prepareForDraw() {
+        if (getRenderableData() instanceof RenderableInternalFilamentAssetData) {
+            RenderableInternalFilamentAssetData renderableData =
+                    (RenderableInternalFilamentAssetData) getRenderableData();
+            // Allow the resource loader to finalize textures that have become ready.
+            renderableData.resourceLoader.asyncUpdateLoad();
+        }
+    }
+
+    void attachToRenderer(Renderer renderer) {
+    }
+
+    void detatchFromRenderer() {
     }
 
     /**
@@ -351,15 +339,15 @@ public abstract class Renderable {
         return null;
     }
 
+    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"}) // CompletableFuture
+    public abstract void prepareForDraw(SceneView sceneView);
+
     /**
      * Used to programmatically construct a {@link Renderable}. Builder data is stored, not copied. Be
      * careful when modifying the data before or between build calls.
      */
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"}) // CompletableFuture
     public abstract static class Builder<T extends Renderable, B extends Builder<T, B>> {
-
-        @Nullable
-        protected Lifecycle lifecycle = null;
         /**
          * @hide
          */
@@ -404,19 +392,11 @@ public abstract class Renderable {
         }
 
         public B setSource(Context context, Uri sourceUri) {
-            return setSource(context, sourceUri, source -> {
-                String url = sourceUri.toString();
-                url = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
-                int lastSeparatorIndex = url.lastIndexOf('/');
-                return Uri.parse((lastSeparatorIndex != -1 ?
-                        url.substring(0, lastSeparatorIndex + 1) : ""
-                ) + source);
-            });
+            return setRemoteSourceHelper(context, sourceUri, true);
         }
 
-        public B setSource(Context context, Uri sourceUri, Function<String, Uri> uriResolver) {
-            this.uriResolver = uriResolver;
-            return setRemoteSourceHelper(context, sourceUri, true);
+        public B setSource(Context context, Uri sourceUri, boolean enableCaching) {
+            return null;
         }
 
         public B setSource(Context context, int resource) {
@@ -482,8 +462,7 @@ public abstract class Renderable {
          *
          * @return the constructed {@link Renderable}
          */
-        public CompletableFuture<T> build(@Nullable Lifecycle lifecycle) {
-            this.lifecycle = lifecycle;
+        public CompletableFuture<T> build() {
             try {
                 checkPreconditions();
             } catch (Throwable failedPrecondition) {
@@ -539,6 +518,10 @@ public abstract class Renderable {
                 } else {
                     throw new AssertionError("Gltf Renderable.Builder must have a valid context.");
                 }
+            } else {
+                LoadRenderableFromSfbTask<T> loader =
+                        new LoadRenderableFromSfbTask<>(renderable, sourceUri);
+                result = loader.downloadAndProcessRenderable(inputStreamCreator);
             }
 
             if (registryId != null) {
@@ -598,8 +581,10 @@ public abstract class Renderable {
         }
 
         private void setCachingEnabled(Context context) {
-            return;
         }
+
+        @SuppressWarnings("AndroidApiChecker") // java.util.concurrent.CompletableFuture
+        public abstract CompletableFuture<ViewRenderable> build(Lifecycle lifecycle);
 
         protected abstract T makeRenderable();
 

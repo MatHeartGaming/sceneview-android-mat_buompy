@@ -164,14 +164,9 @@ public class PlaneVisualizer implements TransformProvider {
         }
 
         if (planeRenderable == null) {
-            try {
-                planeRenderable = ModelRenderable.builder().setSource(renderableDefinition)
-                        .build(sceneView.getLifecycle()).get();
-                planeRenderable.setShadowCaster(false);
-                // Creating a Renderable is immediate when using RenderableDefinition.
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new AssertionError("Unable to create plane renderable.");
-            }
+            planeRenderable = ModelRenderable.builder().setSource(renderableDefinition).makeRenderable();
+            planeRenderable.setShadowCaster(false);
+            // Creating a Renderable is immediate when using RenderableDefinition.
             planeRenderableInstance = planeRenderable.createInstance(this);
         } else {
             planeRenderable.updateFromDefinition(renderableDefinition);

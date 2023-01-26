@@ -9,4 +9,5 @@
     <string name="sceneview_camera_unavailable_message">Another app is using the camera.\n\nTap on this app or try closing the other one.</string>
     <string name="sceneview_unknown_tracking_failure">Unknown tracking failure reason: %1$s</string>
     <string name="sceneview_camera_permission_required">Camera permission required</string>
+    <string name="sceneform_failed_to_create_ar_session">Failed to create AR Session</string>
 </resources>

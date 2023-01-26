@@ -120,7 +120,7 @@ public final class ShapeFactory {
             .build(lifecycle);
 
     CompletableFuture<ModelRenderable> future =
-        ModelRenderable.builder().setSource(renderableDefinition).build(lifecycle);
+        ModelRenderable.builder().setSource(renderableDefinition).build();
 
     @Nullable ModelRenderable result;
     try {
@@ -224,7 +224,7 @@ public final class ShapeFactory {
             .build(lifecycle);
 
     CompletableFuture<ModelRenderable> future =
-        ModelRenderable.builder().setSource(renderableDefinition).build(lifecycle);
+        ModelRenderable.builder().setSource(renderableDefinition).build();
 
     @Nullable ModelRenderable result;
     try {
@@ -381,7 +381,7 @@ public final class ShapeFactory {
             .build(lifecycle);
 
     CompletableFuture<ModelRenderable> future =
-        ModelRenderable.builder().setSource(renderableDefinition).build(lifecycle);
+        ModelRenderable.builder().setSource(renderableDefinition).build();
 
     @Nullable ModelRenderable result;
     try {

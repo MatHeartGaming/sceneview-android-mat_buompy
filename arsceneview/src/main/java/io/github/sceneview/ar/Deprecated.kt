@@ -70,7 +70,7 @@ open class BaseArFragment {
 
 /** ## Deprecated: Use [ArSceneView] */
 @Deprecated("Use ArSceneView", replaceWith = ReplaceWith(expression = "ArSceneView(context)"))
-class ArFragment : BaseArFragment() {
+open class ArFragment : BaseArFragment() {
 
     /** ## Deprecated: Use [ArSceneView.onArSessionResumed] */
     @Deprecated(

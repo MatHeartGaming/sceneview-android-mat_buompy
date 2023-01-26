@@ -3,9 +3,14 @@ package com.google.ar.sceneform.rendering;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
+import androidx.lifecycle.Lifecycle;
 
 import com.google.ar.sceneform.resources.ResourceRegistry;
 import com.google.ar.sceneform.utilities.AndroidPreconditions;
+
+import java.util.concurrent.CompletableFuture;
+
+import io.github.sceneview.SceneView;
 
 
 /**
@@ -19,11 +24,11 @@ import com.google.ar.sceneform.utilities.AndroidPreconditions;
  */
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class ModelRenderable extends Renderable {
-  
 
 
 
-  
+
+
 
 
 
@@ -38,21 +43,6 @@ public class ModelRenderable extends Renderable {
     copyAnimationFrom(other);
   }
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 
 
@@ -67,7 +57,6 @@ public class ModelRenderable extends Renderable {
 
 
 
-  
 
 
 
@@ -80,7 +69,23 @@ public class ModelRenderable extends Renderable {
 
 
 
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   private void copyAnimationFrom(ModelRenderable other) {return ;}
 
 
@@ -102,19 +107,17 @@ public class ModelRenderable extends Renderable {
     return new ModelRenderable(this);
   }
 
+  @Override
+  public void prepareForDraw(SceneView sceneView) {
+
+  }
+
   /** Constructs a {@link ModelRenderable}. */
   public static Builder builder() {
     AndroidPreconditions.checkMinAndroidApiLevel();
     return new Builder();
   }
 
-  
-
-
-
-
-
-  
 
 
 
@@ -129,7 +132,6 @@ public class ModelRenderable extends Renderable {
 
 
 
-  
 
 
 
@@ -144,15 +146,6 @@ public class ModelRenderable extends Renderable {
 
 
 
-  
-
-
-
-
-
-
-
-  
 
 
 
@@ -166,18 +159,40 @@ public class ModelRenderable extends Renderable {
 
 
 
-  
 
 
 
 
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
   /** Factory class for {@link ModelRenderable}. */
   public static final class Builder extends Renderable.Builder<ModelRenderable, Builder> {
+
+    @Override
+    public CompletableFuture<ViewRenderable> build(Lifecycle lifecycle) {
+      return null;
+    }
 
     /** @hide */
     @Override

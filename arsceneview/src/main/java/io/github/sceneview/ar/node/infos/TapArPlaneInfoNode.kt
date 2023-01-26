@@ -1,10 +1,10 @@
 package io.github.sceneview.ar.node.infos
 
 import android.content.Context
-import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import com.google.ar.sceneform.rendering.RenderableInstance
+import com.google.ar.sceneform.rendering.ViewRenderable
 import io.github.sceneview.ar.R
 import io.github.sceneview.math.Position
 import io.github.sceneview.node.ViewNode
@@ -20,10 +20,10 @@ open class TapArPlaneInfoNode(context: Context, lifecycle: Lifecycle) :
         loadView(context, lifecycle, R.layout.sceneview_view_info_tap_ar_plane)
     }
 
-    override fun onViewLoaded(renderableInstance: RenderableInstance, view: View) {
+    override fun onViewLoaded(renderableInstance: RenderableInstance, view: ViewRenderable) {
         super.onViewLoaded(renderableInstance, view)
 
-        textView = view.findViewById(R.id.textView)
+        textView = view.view.findViewById(R.id.textView)
         renderableInstance.apply {
             isShadowCaster = false
             isShadowReceiver = false

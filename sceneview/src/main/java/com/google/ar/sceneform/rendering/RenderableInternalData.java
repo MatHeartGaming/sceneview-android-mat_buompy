@@ -200,7 +200,11 @@ class RenderableInternalData implements IRenderableInternalData {
   public void buildInstanceData(RenderableInstance instance, @Entity int renderedEntity) {
     Renderable renderable = instance.getRenderable();
     IRenderableInternalData renderableData = renderable.getRenderableData();
-    ArrayList<MaterialInstance> materialBindings = renderable.getMaterialBindings();
+    ArrayList<MaterialInstance> materialBindings = new ArrayList<>();
+    for(Material mInstance : renderable.getMaterialBindings()) {
+      materialBindings.add(mInstance.filamentMaterialInstance);
+    }
+
     RenderableManager renderableManager = Filament.getRenderableManager();
     @EntityInstance int renderableInstance = renderableManager.getInstance(renderedEntity);
 

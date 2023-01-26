@@ -37,12 +37,11 @@ import java.util.concurrent.CompletableFuture;
 import dev.romainguy.kotlin.math.Float2;
 import io.github.sceneview.SceneView;
 import io.github.sceneview.material.MaterialInstanceKt;
-import io.github.sceneview.node.ModelNode;
 import io.github.sceneview.node.Node;
 
 /**
  * Renders a 2D Android view in 3D space by attaching it to a {@link Node}
- * with {@link ModelNode#setModel(Renderable)}. By default, the size of the
+ * with . By default, the size of the
  * view is 1 meter in the {@link SceneView} per 250dp in the layout. Use a
  * {@link ViewSizer} to control how the size of the view in the {@link
  * SceneView} is calculated.
@@ -130,7 +129,7 @@ public class ViewRenderable extends Renderable {
     horizontalAlignment = builder.horizontalAlignment;
     verticalAlignment = builder.verticalAlignment;
     RenderViewToExternalTexture renderView =
-        new RenderViewToExternalTexture(view.getContext(), view, lifecycle);
+        new RenderViewToExternalTexture(view.getContext(), view, getMaterial().lifecycle);
     renderView.addOnViewSizeChangedListener(onViewSizeChangedListener);
     viewRenderableData = new ViewRenderableInternalData(renderView);
 
@@ -248,7 +247,7 @@ public class ViewRenderable extends Renderable {
     ViewRenderableInternalData data = Preconditions.checkNotNull(viewRenderableData);
     RenderViewToExternalTexture renderViewToExternalTexture = data.getRenderView();
 
-    getMaterial().setParameter("viewTextureReady", renderViewToExternalTexture.isViewTextureReady());
+    getMaterial().filamentMaterialInstance.setParameter("viewTextureReady", renderViewToExternalTexture.isViewTextureReady());
 
     if (!renderViewToExternalTexture.isAttachedToWindow()
         || !renderViewToExternalTexture.isLaidOut()) {
@@ -264,17 +263,17 @@ public class ViewRenderable extends Renderable {
     }
 
     if (!isInitialized) {
-      MaterialInstanceKt.setExternalTexture(getMaterial(), "viewTexture", renderViewToExternalTexture.getExternalTexture().getFilamentTexture());
+      MaterialInstanceKt.setExternalTexture(getMaterial().filamentMaterialInstance, "viewTexture", renderViewToExternalTexture.getExternalTexture().getFilamentTexture());
       updateSuggestedCollisionShape();
 
       isInitialized = true;
     }
 
     if (sceneView != null && sceneView.isFrontFaceWindingInverted()) {
-      MaterialInstanceKt.setParameter(getMaterial(), "offsetUv", new Float2(1.0f, 0.0f));
+      MaterialInstanceKt.setParameter(getMaterial().filamentMaterialInstance, "offsetUv", new Float2(1.0f, 0.0f));
     }
 
-    super.prepareForDraw(sceneView);
+    super.prepareForDraw();
   }
 
   public void attachView(ViewAttachmentManager attachmentManager) {
@@ -648,10 +647,10 @@ public class ViewRenderable extends Renderable {
                           );
                         }
                 );
-        return setSourceFuture.thenCompose((Void) -> super.build(lifecycle));
+        return setSourceFuture.thenCompose((Void) -> super.build());
       }
 
-      return super.build(lifecycle);
+      return super.build();
     }
 
     @Override

@@ -116,7 +116,9 @@ public class RenderableInstance implements AnimatableModel {
         }
         this.transformProvider = transformProvider;
         this.renderable = renderable;
-        this.materialBindings = new ArrayList<>(renderable.getMaterialBindings());
+        for(Material mInstance : renderable.getMaterialBindings()) {
+            this.materialBindings.add(mInstance.filamentMaterialInstance);
+        }
         this.materialNames = new ArrayList<>(renderable.getMaterialNames());
         entity = createFilamentEntity();
 
@@ -535,7 +537,7 @@ public class RenderableInstance implements AnimatableModel {
      * @hide
      */
     public void prepareForDraw(SceneView sceneView) {
-        renderable.prepareForDraw(sceneView);
+        renderable.prepareForDraw();
 
         ChangeId changeId = renderable.getId();
         if (changeId.checkChanged(renderableId)) {
